@@ -1,5 +1,5 @@
 #coding: utf-8
-#Developer: Yuri Boeira (Derxs)
+#Developer: Derxs
 import os, time, socket
 
 def criar():
